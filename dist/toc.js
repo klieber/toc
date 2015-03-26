@@ -2,7 +2,7 @@
  * toc - jQuery Table of Contents Plugin
  * v0.3.2
  * http://projects.jga.me/toc/
- * copyright Greg Allen 2014
+ * copyright Greg Allen 2015
  * MIT License
 */
 /*!
@@ -63,8 +63,16 @@ $.fn.toc = function(options) {
 
   var container = $(opts.container);
   var headings = $(opts.selectors, container);
-  var headingOffsets = [];
   var activeClassName = opts.activeClass;
+  
+  var headingOffsets = function() {
+    var offsets = [];
+    headings.each(function(i, heading) {
+      var $h = $(heading);
+      offsets.push($h.offset().top - opts.highlightOffset);
+    });
+    return offsets;
+  }; 
 
   var scrollTo = function(e, callback) {
     if (opts.smoothScrolling && typeof opts.smoothScrolling === 'function') {
@@ -85,10 +93,11 @@ $.fn.toc = function(options) {
     }
     timeout = setTimeout(function() {
       var top = $(window).scrollTop(),
-        highlighted, closest = Number.MAX_VALUE, index = 0;
+        highlighted, closest = Number.MAX_VALUE, index = 0
+        offsets = headingOffsets();
       
-      for (var i = 0, c = headingOffsets.length; i < c; i++) {
-        var currentClosest = Math.abs(headingOffsets[i] - top);
+      for (var i = 0, c = offsets.length; i < c; i++) {
+        var currentClosest = Math.abs(offsets[i] - top);
         if (currentClosest < closest) {
           index = i;
           closest = currentClosest;
@@ -112,7 +121,6 @@ $.fn.toc = function(options) {
 
     headings.each(function(i, heading) {
       var $h = $(heading);
-      headingOffsets.push($h.offset().top - opts.highlightOffset);
 
       var anchorName = opts.anchorName(i, heading, opts.prefix);
 
@@ -181,7 +189,7 @@ jQuery.fn.toc.defaults = {
     return prefix + '-' + candidateId;
   },
   headerText: function(i, heading, $heading) {
-    return $heading.text();
+    return $heading.data('toc-title') || $heading.text();
   },
   itemClass: function(i, heading, $heading, prefix) {
     return prefix + '-' + $heading[0].tagName.toLowerCase();
