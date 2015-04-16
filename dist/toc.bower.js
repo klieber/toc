@@ -5,6 +5,13 @@
  * copyright Greg Allen 2015
  * MIT License
 */
+/*!
+ * toc - jQuery Table of Contents Plugin
+ * v0.3.2
+ * http://projects.jga.me/toc/
+ * copyright Greg Allen 2015
+ * MIT License
+*/
 (function($) {
 var verboseIdCache = {};
 $.fn.toc = function(options) {
@@ -46,17 +53,27 @@ $.fn.toc = function(options) {
         highlighted, closest = Number.MAX_VALUE, index = 0
         offsets = headingOffsets();
       
-      for (var i = 0, c = offsets.length; i < c; i++) {
-        var currentClosest = Math.abs(offsets[i] - top);
-        if (currentClosest < closest) {
-          index = i;
-          closest = currentClosest;
+      if ((top + $(window).height()) >= $(document).height()) {
+        index = offsets.length - 1;
+      } else { 
+        for (var i = 0, c = offsets.length; i < c; i++) {
+          var currentClosest = Math.abs(offsets[i] - top);
+          if (currentClosest < closest) {
+            index = i;
+            closest = currentClosest;
+          }
         }
-      }
-      
+      } 
+
       $('li', self).removeClass(activeClassName);
       highlighted = $('li:eq('+ index +')', self).addClass(activeClassName);
-      opts.onHighlight(highlighted);      
+      var scrollTo = highlighted.offset().top - self.offset().top;
+      if (scrollTo < 0) {
+        self.scrollTop(scrollTo + self.scrollTop());
+      } else if (scrollTo > self.height()) {
+        self.scrollTop(scrollTo + self.scrollTop() - self.height() + highlighted.outerHeight());
+      }
+      opts.onHighlight(highlighted);
     }, 50);
   };
   if (opts.highlightOnScroll) {
